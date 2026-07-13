@@ -8,9 +8,6 @@ tags: [wiki, knowledge-base, research, notes, markdown]
 based_on: "https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f"
 hermes_adapted: true
 ---
-
-> **适配说明**：此 Skill 从有道云笔记官方版本适配到 Hermes。适配方法详见 youdaonote Skill 的 `references/hermes-adaptation.md`。
-
 # YoudaoNote Wiki — 有道云笔记知识库
 
 在有道云笔记中构建持久化、可复合增长的知识库。
