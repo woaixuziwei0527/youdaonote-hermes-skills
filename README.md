@@ -28,12 +28,12 @@ youdaonote -s ydn list
 # 基础 Skill
 mkdir -p ~/.hermes/skills/youdaonote/
 curl -o ~/.hermes/skills/youdaonote/SKILL.md \
-  https://raw.githubusercontent.com/woaixuziwei0527/youdaonote-hermes-skills/main/youdaonote-hermes.md
+  https://raw.githubusercontent.com/weiweiplus0527/youdaonote-hermes-skills/main/youdaonote-hermes.md
 
 # Wiki Skill
 mkdir -p ~/.hermes/skills/youdaonote-llm-wiki/
 curl -o ~/.hermes/skills/youdaonote-llm-wiki/SKILL.md \
-  https://raw.githubusercontent.com/woaixuziwei0527/youdaonote-hermes-skills/main/youdaonote-llm-wiki-hermes.md
+  https://raw.githubusercontent.com/weiweiplus0527/youdaonote-hermes-skills/main/youdaonote-llm-wiki-hermes.md
 ```
 
 ### 如果你用自定义 profile（把 `YOUR_PROFILE` 换掉）
@@ -41,11 +41,11 @@ curl -o ~/.hermes/skills/youdaonote-llm-wiki/SKILL.md \
 ```bash
 mkdir -p ~/.hermes/profiles/YOUR_PROFILE/skills/youdaonote/
 curl -o ~/.hermes/profiles/YOUR_PROFILE/skills/youdaonote/SKILL.md \
-  https://raw.githubusercontent.com/woaixuziwei0527/youdaonote-hermes-skills/main/youdaonote-hermes.md
+  https://raw.githubusercontent.com/weiweiplus0527/youdaonote-hermes-skills/main/youdaonote-hermes.md
 
 mkdir -p ~/.hermes/profiles/YOUR_PROFILE/skills/youdaonote-llm-wiki/
 curl -o ~/.hermes/profiles/YOUR_PROFILE/skills/youdaonote-llm-wiki/SKILL.md \
-  https://raw.githubusercontent.com/woaixuziwei0527/youdaonote-hermes-skills/main/youdaonote-llm-wiki-hermes.md
+  https://raw.githubusercontent.com/weiweiplus0527/youdaonote-hermes-skills/main/youdaonote-llm-wiki-hermes.md
 ```
 
 ### 验证安装
