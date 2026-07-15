@@ -6,6 +6,8 @@ hermes_adapted: true
 ---
 # YoudaoNote — 有道云笔记
 
+> **本机偏好**：默认保存格式为 B（.note + contentFormat: md）。用户未明确选择时选 B，不选 A。所有 .note 笔记默认检查并添加 `[[双链]]`。
+
 通过 `youdaonote` CLI 操作有道云笔记。覆盖笔记 CRUD、待办管理、网页剪藏全场景。
 
 ## 前置条件（Agent 自动处理）
@@ -33,9 +35,9 @@ youdaonote -s ydn <command> [options]
 
 所有 `youdaonote` CLI 命令通过 Hermes 的 `terminal` 工具执行。需要写文件时使用 `write_file` 工具。
 
-`save` 命令的 contentFile 模式：
+`save` 命令的 contentFile 模式（默认 .note 格式，支持 `[[双链]]`）：
 1. 先用 `write_file` 将 Markdown 内容写入 `/tmp/note-content.md`
-2. 再用 `terminal` 执行 `printf '%s\n' '{"title":"标题.md","type":"md","contentFile":"/tmp/note-content.md"}' | youdaonote -s ydn save --json`
+2. 再用 `terminal` 执行 `printf '%s\n' '{"title":"标题.note","type":"note","contentFormat":"md","contentFile":"/tmp/note-content.md"}' | youdaonote -s ydn save --json`
 
 ## 命令速查
 
@@ -69,34 +71,57 @@ youdaonote -s ydn <command> [options]
 
 ## 笔记管理
 
-**默认创建方式**：所有笔记一律使用 `save` 命令 + `contentFormat: "md"` 保存为 Markdown 富文本。
+**默认创建方式**：所有笔记一律使用 `save` 命令，格式为 `type: "note"` + `contentFormat: "md"`（.note 容器 + Markdown 内容），这样才能支持有道云笔记原生的 `[[双链]]` 应用内跳转。
 **禁止使用 `create` 命令保存包含 Markdown 格式的内容**（标题、列表、代码块、表格等）—— `create` 仅支持纯文本，会静默丢失所有格式。
 
-### Markdown 内容格式选择（必须遵守）
+### 格式选择
 
-当用户要保存的内容包含 Markdown 特征时（`#` 标题、`**粗体**`、代码块、列表、引用、链接、图片），必须先询问用户选择：
+当内容包含 Markdown 特征（`#` 标题、`**粗体**`、代码块、列表等），先询问用户选 A 或 B：
 
-- **A（推荐）保存为 Markdown 笔记（.md）** → `save` 命令，`type: "md"`，文件名加 `.md` 后缀。格式完整保留。
-- **B 保存为有道专有格式（.note）** → `save` 命令，`type: "note"`，`contentFormat: "md"`，文件名加 `.note` 后缀。支持有道富文本编辑器。
+- **A** Markdown 笔记（.md），`type: "md"` — 不支持 `[[双链]]` 跳转
+- **B** 有道专有格式（.note），`type: "note"`, `contentFormat: "md"` — 支持 `[[双链]]` 跳转（推荐）
 
-用户未明确选择时默认选 A。
+用户未明确选择时默认选 B（本机偏好。通用版默认 A，此处已覆盖）。
 
-### contentFile 模式（Hermes 专用）
+### 双向链接检查（必须执行）
+
+每次创建或更新 .note 格式笔记时，Agent **必须**检查内容中是否包含 `[[笔记标题]]` 模式的双链：
+
+1. 扫描内容，识别所有 `[[...]]` 引用
+2. 对每个引用，用 `youdaonote -s ydn search "笔记标题"` 确认目标笔记是否存在
+3. 已存在 → 保留 `[[笔记标题]]` 双链（有道客户端内可点击跳转）
+4. 不存在 → 替换为 `→ 笔记标题` 文本标记（待目标笔记创建后再替换为双链）
+
+### 行为准则（Agent 必须遵守）
+
+**绝对禁止绕过 Skill 标准流程直接手写 CLI 命令。** 每条 youdaonote 操作必须走完整流程：
+
+1. `youdaonote -s ydn list` — 检测 CLI 可用性
+2. 检测内容是否含 Markdown 特征（`#`、`**`、代码块、列表等）
+3. 含 Markdown 特征 → 询问用户选 A/B
+4. contentFile 两步模式：`write_file` 写 `/tmp/` 临时文件 → `terminal` 执行 `printf | youdaonote -s ydn save --json`
+5. 双链检查：扫描 `[[...]]`，确认目标存在后保留，否则替换为 `→`
+
+**常见违规**：Agent 因对 CLI 命令熟悉，直接调用 `terminal` 一步完成 save，跳过检测和询问步骤。
+
+**合规做法**：即便临时文件已存在，仍须显式执行检测和询问，不可省略。
+
+### contentFile 模式
 
 避免 JSON 转义问题，大内容/含换行内容使用 contentFile 模式：
 
-**选 A（Markdown）：**
-```
-Step 1：write_file 将 Markdown 写入 /tmp/note-content.md
-Step 2：terminal 执行：
-printf '%s\n' '{"title":"标题.md","type":"md","contentFile":"/tmp/note-content.md","parentId":"文件夹ID"}' | youdaonote -s ydn save --json
-```
-
-**选 B（有道格式）：**
+**默认 B（.note，推荐）：**
 ```
 Step 1：write_file 将 Markdown 写入 /tmp/note-content.md
 Step 2：terminal 执行：
 printf '%s\n' '{"title":"标题.note","type":"note","contentFormat":"md","contentFile":"/tmp/note-content.md","parentId":"文件夹ID"}' | youdaonote -s ydn save --json
+```
+
+**选 A（.md）：**
+```
+Step 1：write_file 将 Markdown 写入 /tmp/note-content.md
+Step 2：terminal 执行：
+printf '%s\n' '{"title":"标题.md","type":"md","contentFile":"/tmp/note-content.md","parentId":"文件夹ID"}' | youdaonote -s ydn save --json
 ```
 
 短内容（无换行/特殊字符）可直接内联 content 字段，不用 contentFile。
@@ -133,31 +158,23 @@ youdaonote -s ydn clip "https://example.com/article" -f <目录ID> --json  # 保
 | `config-file` / `api-key` | `youdaonote config set apiKey YOUR_KEY` |
 | `mcp-connection` | API Key 有效但网络不通，提示用户检查网络或稍后重试 |
 
+## Hermes 环境陷阱
+
+### 不要在 execute_code 沙箱里调用 CLI
+
+`execute_code` 的沙箱环境没有 `youdaonote`，因为 `~/.local/bin` 不在沙箱 PATH 里。所有 `youdaonote` 命令必须通过 `terminal` 工具执行。
+
+### 务必走 Skill 的 contentFile 协议
+
+保存笔记时，必须遵循「`write_file` 写临时文件 → `terminal` 执行 `printf ... | youdaonote -s ydn save --json`」两步。不要自以为直接调 `youdaonote` 更快就绕过协议。
+
 ## 注意事项
 
+- **必须走完整 Skill 流程**：CLI 检测 → 格式检测 → A/B 询问 → contentFile 两步 → 双链检查
+- **默认格式为 .note**：所有笔记用 `type: "note"` + `contentFormat: "md"`，支持 `[[双链]]` 应用内跳转
 - 所有命令支持 `--json` 输出机器可解析格式
 - 大内容通过 `--file` 传递，避免命令行参数限制
 - `list` 输出的 `id` 与 `read` 的 `fileId` 等价
 - `read` 返回的 `rawFormat` 标识笔记原始格式：`md`=Markdown、`note`=云笔记、`txt`=纯文本；`isRaw` 标识 content 是否为原始内容
-- **禁止用 `create` 保存 Markdown 内容**：`create` 不支持 `contentFormat`，有格式需求时一律使用 `save` 并指定 `contentFormat: "md"`
+- **禁止用 `create` 保存 Markdown 内容**：`create` 不支持 `contentFormat`，有格式需求时一律使用 `save`
 - `save` 命令通过 JSON 的 **`parentId`** 字段指定目标文件夹（值来自 `list` 返回的文件夹 ID）；不传则默认存到「我的资源/收藏笔记」
-
-## 参考
-
-- [第三方 Skill 适配 Hermes 通用流程](references/hermes-skill-adaptation.md)
-
-## 上游参考
-
-详见 `references/upstream-source.md`，包含原版 SKILL.md 来源、CLI 安装 URL、API Key 获取地址，以及 Hermes 适配要点。
-
-## 上游更新检测
-
-当有道官方发布新版 Skill 时（ZIP 地址：`https://artifact.lx.netease.com/download/youdaonote-cli/youdaonote-skill-latest.zip`），重新对比适配：
-
-```bash
-curl -sL -o /tmp/youdaonote-skill-latest.zip "https://artifact.lx.netease.com/download/youdaonote-cli/youdaonote-skill-latest.zip"
-unzip -o /tmp/youdaonote-skill-latest.zip -d /tmp/youdaonote-skill
-diff /tmp/youdaonote-skill/youdaonote/SKILL.md ~/.hermes/profiles/jizhe/skills/youdaonote/SKILL.md
-```
-
-关注新增命令和参数变化，保持「Hermes 调用方式」一节中的两步模式（write_file → terminal 管道）。
