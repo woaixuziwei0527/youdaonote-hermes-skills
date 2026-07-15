@@ -151,15 +151,16 @@ printf '%s\n' '{
 
 ### 交叉引用
 
-两层引用体系，同时使用：
+有道云笔记不支持 `[[wikilinks]]` 原生双链。使用两层引用体系：
 
-**原生双链（人类可点击）：**
-- 有道云笔记 MD 格式笔记支持原生双链 `[[笔记标题]]`，在客户端/网页端可直接点击跳转
-- 写入 Wiki 页面时，已创建且有确定标题的页面，优先使用双链格式（如 `[[agent-architecture.md]]`）
-- 仅对尚未创建的页面使用 `→ page-name` 文本标记，创建后替换为 `[[...]]`
+**URL 链接（已存在页面）：**
+- 已创建且有 fileId 的页面，使用 Markdown 链接：`[页面标题](https://note.youdao.com/web/#/file/{fileId})`
+- 在客户端中点击会跳转到对应笔记
+- 写入 Wiki 页面时，从 schema.md 的 fileId 注册表查找目标页面的 fileId
 
-**Agent 引用标记（机器可检索）：**
-- `→ 页面标题` 用于 Ingest 报告和 Agent 内部导航
+**文本标记（未创建页面）：**
+- 尚未创建的页面使用 `→ page-name` 文本标记，Agent 通过 search 定位
+- 页面创建后替换为 URL 链接格式
 - Agent 通过 index.md 或 `youdaonote -s wiki search` 定位被引用页面
 
 **反向链接（被引用段）：**
