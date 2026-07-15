@@ -44,7 +44,7 @@ hermes_adapted: true
 
 所有 `youdaonote` CLI 命令通过 `terminal` 工具执行。需要写入文件内容时使用 `write_file` 工具。
 
-> **Wiki 页面格式要求**：所有 Wiki 页面必须使用 `type: "note"` + `contentFormat: "md"`。纯 `type: "md"` 格式的笔记不支持有道云笔记原生的 `[[双链]]` 内部跳转，只有 `.note` 容器格式才能实现应用内笔记间跳转。详见 `references/note-vs-md-format.md`。纯 `type: "md"` 格式的笔记不支持有道云笔记原生的 `[[双链]]` 内部跳转，只有 `.note` 容器格式才能实现应用内笔记间跳转。
+> **Wiki 页面格式要求**：所有 Wiki 页面必须使用 `type: "note"` + `contentFormat: "md"`。详见 `references/note-vs-md-format.md`。
 
 **contentFile 两步模式（所有含换行的 Markdown 内容使用此模式）**：
 ```
